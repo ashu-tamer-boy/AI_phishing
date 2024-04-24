@@ -1,8 +1,7 @@
-
+import pygoogle
 #code for feature extraction
 from urllib.parse import urlparse,urlencode
 import ipaddress
-import re
 import re
 from bs4 import BeautifulSoup
 import whois
@@ -11,8 +10,150 @@ import urllib.request
 from datetime import datetime
 import requests
 from googlesearch import search
+import tldextract
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+
+#link in java script
+def has_script_links(url):
+    try:
+        # Fetch webpage HTML content
+        response = requests.get(url)
+        if response.status_code == 200:
+            # Extract URLs from script tags
+            script_urls = re.findall(r'<script.*?src="(.*?)".*?>', response.text)
+            if len(script_urls) != 0:
+                return 1
+    except Exception as e:
+        return 0
+    return 1
+
+#email info
+def has_phishing_email(url):
+    try:
+        # Fetch webpage HTML content
+        response = requests.get(url)
+        if response.status_code == 200:
+            # Search for potential phishing email patterns in the HTML content
+            email_pattern = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+            if email_pattern.search(response.text):
+                return 1
+    except Exception as e:
+        return 0
+    return -1
+
+#server form handling
+def has_server_form_handler(url):
+    try:
+        # Fetch webpage HTML content
+        response = requests.get(url)
+        if response.status_code == 200:
+            # Parse HTML content
+            soup = BeautifulSoup(response.content, 'html.parser')
+            # Find all form tags
+            form_tags = soup.find_all('form')
+            # Check if any form contains the ServerFormHandler
+            for form in form_tags:
+                if 'ServerFormHandler' in form.get('action', ''):
+                    return 1
+    except Exception as e:
+        return 0
+    return -1
+
+def has_anchor_urls(url):
+    try:
+        # Fetch webpage HTML content
+        response = requests.get(url)
+        if response.status_code == 200:
+            # Parse HTML content
+            soup = BeautifulSoup(response.content, 'html.parser')
+            # Find all anchor tags
+            anchor_tags = soup.find_all('a', href=True)
+            if anchor_tags:
+                return 1
+    except Exception as e:
+        return 0
+    return -1
+#subdomain
+def get_favicon_url(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            # Find favicon link with rel="icon" or rel="shortcut icon"
+            favicon_link = soup.find("link", rel="icon") or soup.find("link", rel="shortcut icon")
+            if favicon_link:
+                favicon_url = favicon_link.get('href')
+                # Convert relative URL to absolute URL if necessary
+                favicon_url = urljoin(url, favicon_url)
+                return 1
+    except Exception as e:
+        i = 0
+    return 0
+
+def is_abnormal_url(url):
+    
+    # Check for suspicious characters in the URL
+    parsed_url = urlparse(url)
+    if re.search(r'[@!#$%^&*()_+{}[\]:;<>,.?/\\|~-]', url):
+        return 1
+
+    if len(url) > 1000:
+        return 1
+    
+    # Check if domain exists and is reachable
+    try:
+        response = requests.head(url, allow_redirects=True, timeout=5)
+        response.raise_for_status()
+    except Exception as e:
+        return 1
+    
+    # Check SSL certificate expiration date
+    if parsed_url.scheme == 'https':
+        try:
+            ssl_expiry_date = datetime.strptime(response.headers['Expires'], '%a, %d %b %Y %H:%M:%S %Z')
+            if ssl_expiry_date < datetime.now():
+                return 1
+        except KeyError:
+            # SSL expiry date not found or invalid
+            return 1
+    
+    return 0
 
 
+def has_subdomain(url):
+    # Extract domain parts
+    try:
+      extracted = tldextract.extract(url)
+    # Check if subdomain exists
+      if bool(extracted.subdomain):
+       return 1
+      else:
+       return -1
+    except:
+      return 0
+
+def SSLfinal_State(url):
+    try:
+        response = requests.get(url, timeout=10)
+        response.status_code == 200 and response.url.startswith('https')
+        return 1
+    except requests.exceptions.RequestException:
+        return -1
+
+#RequestURL
+
+def has_redirected(url):
+    try:
+        response = requests.head(url, allow_redirects=True)
+        final_url = response.url
+        if final_url != url:
+            return 1
+        else:
+           return -1
+    except Exception as e:
+        return 0
+    
 
 
 
@@ -21,7 +162,7 @@ from googlesearch import search
 def getDomain(url):  
   domain = urlparse(url).netloc
   if re.match(r"^www.",domain):
-	       domain = domain.replace("www.","")
+	  domain = domain.replace("www.","")
   return domain
 
 # 2.Checks for IP address in URL (Have_IP)
@@ -32,6 +173,17 @@ def havingIP(url):
   except:
     ip = 0
   return ip
+
+def uses_non_standard_port(url):
+    parsed_url = urlparse(url)
+    if parsed_url.port is None:
+        return 0  # No port specified, assuming standard port
+    elif parsed_url.scheme == 'http' and parsed_url.port == 80:
+        return 0  # Standard HTTP port
+    elif parsed_url.scheme == 'https' and parsed_url.port == 443:
+        return 0  # Standard HTTPS port
+    else:
+        return 1
 
 # 3.Checks the presence of @ in URL (Have_At)
 def haveAtSign(url):
@@ -50,14 +202,16 @@ def getLength(url):
     length = 1            
   return length
 
-# 5.Gives number of '/' in URL (URL_Depth)
+# 5.Gives number of '/' in URL (URL_Depth) LongURL
 def getDepth(url):
   s = urlparse(url).path.split('/')
   depth = 0
   for j in range(len(s)):
     if len(s[j]) != 0:
       depth = depth+1
-  return depth
+  if(depths > 10):
+     return 1
+  return 0
 
 
 # 6.Checking for redirection '//' in the url (Redirection)
@@ -114,17 +268,17 @@ def prefixSuffix(url):
 
 # 12.Web traffic (Web_Traffic)
 def web_traffic(url):
-  try:
-    #Filling the whitespaces in the URL if any
-    url = urllib.parse.quote(url)
-    rank = BeautifulSoup(urllib.request.urlopen("http://data.alexa.com/data?cli=10&dat=s&url=" + url).read(), "xml").find(
-        "REACH")['RANK']
-    rank = int(rank)
-  except TypeError:
-        return 1
-  if rank <100000:
-    return 1
-  else:
+  # try:
+  #   #Filling the whitespaces in the URL if any
+  #   url = urllib.parse.quote(url)
+  #   rank = BeautifulSoup(urllib.request.urlopen("http://data.alexa.com/data?cli=10&dat=s&url=" + url).read(), "xml").find(
+  #       "REACH")['RANK']
+  #   rank = int(rank)
+  # except TypeError:
+  #       return 1
+  # if rank <100000:
+  #   return 1
+  # else:
     return 0
   
 
@@ -212,6 +366,31 @@ def forwarding(response):
       return 0
     else:
       return 1
+#web traffic
+def get_web_traffic(url):
+    try:
+        api_key = '63d96f060dff4bb48e8a6303c1c5bd75'
+        url = f"https://api.similarweb.com/v1/website/{url}/total-traffic-and-engagement/visits"
+        params = {'api_key': api_key}
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            if 'visits' in data:
+                if(int(data['visits']) < 1000):
+                   return 1
+    except Exception as e:
+        return 0
+    return 1
+
+
+#page rank
+def get_page_rank(url):
+    try:
+        pr = pygoogle.get_pr(url)
+        return pr
+    except Exception as e:
+        print("Error:", e)
+    return None
 
 
 #Function to extract features
@@ -223,23 +402,28 @@ def featureExtraction(url,label):
   features.append(havingIP(url))
   features.append(haveAtSign(url))
   features.append(getLength(url))
-  features.append(getDepth(url))
+  #features.append(getDepth(url))
   features.append(redirection(url))
   features.append(httpDomain(url))
   features.append(tinyURL(url))
   features.append(prefixSuffix(url))
+  features.append(has_subdomain(url))
   
   #Domain based features (4)
-  dns = 0
+  dns = -1
   try:
     domain_name = whois.whois(urlparse(url).netloc)
-  except:
     dns = 1
-
+  except:
+    dns = -1
+  #Dnsrecrding
   features.append(dns)
   features.append(web_traffic(url))
-  features.append(1 if dns == 1 else domainAge(domain_name))
-  features.append(1 if dns == 1 else domainEnd(domain_name))
+  features.append(1 if dns == 1 else domainAge(domain_name))#DomainRegLen
+  features.append(1 if dns == 1 else domainEnd(domain_name)) 
+
+
+
   
   # HTML & Javascript based features (4)
   try:
@@ -256,7 +440,7 @@ def featureExtraction(url,label):
 
 
 
-x = featureExtraction("https://google.com", 0)
+x = featureExtraction("https://erpcustomer.epicor.com/lms/catalog/browse", 0)
 print(x)
 
 

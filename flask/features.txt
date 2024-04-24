@@ -8,7 +8,7 @@ PageRank,GoogleIndex,LinksPointingToPage,StatsReport,class
 
 
 ['index','','','','','',
- '','having_Sub_Domain'
+ '',''
  ,'SSLfinal_State',
  'Domain_registeration_length'
  ,'Favicon',

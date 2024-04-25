@@ -35,13 +35,13 @@ def check_for_popups(url):
             script_tags = soup.find_all('script')
             for script_tag in script_tags:
                 if "window.open" in script_tag.text:
-                    return True
-            return 1
+                    return 1
+            return -1
         else:
-            print("Failed to fetch URL:", response.status_code)
+            # print("Failed to fetch URL:", response.status_code)
             return -1
     except Exception as e:
-        print("An error occurred:", e)
+        # print("An error occurred:", e)
         return -1
 
 # Example usage:
@@ -52,7 +52,7 @@ def check_for_popups(url):
 #         return 1;
 #     else:
 #         print("The URL does not have pop-ups.")
-def get_page_rank(url):
+def get_page_rankk(url):
 
     query =  extract_domain(url).split('.')
 # initilazing index=0
@@ -82,5 +82,5 @@ def get_page_rank(url):
     else:
         return -1
     
-print(get_page_rank("https://erpcustomer.epicor.com/lms/catalog/browse"))
+# print(get_page_rank("https://erpcustomer.epicor.com/lms/catalog/browse"))
 #print(check_for_popups("https://erpcustomer.epicor.com/lms/catalog/browse"))

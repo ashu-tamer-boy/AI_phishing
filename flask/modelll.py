@@ -15,7 +15,7 @@ class mode:
   def just(__self__,l):
     trainn = pd.read_csv("./phishing.csv")
     # 11054 rows and 32 columns
-    print(trainn.shape)
+    # print(trainn.shape)
     missing  = pd.concat([trainn.isnull().sum()],axis = 1 , keys=['Train'])
     # print(trainn.head())
     alldata = trainn.drop(["class","Index"],axis =1)
@@ -30,14 +30,14 @@ class mode:
     # labels.head
     # labels.shape
     x_train,x_test,y_train,y_test = train_test_split(trainn, labels,test_size = 0.30)
-    print(x_test.shape)
+    # print(x_test.shape)
     rf = RandomForestClassifier()
     rf.fit(x_train,y_train)
-    example =np.array([l]) 
-    outputt= rf.predict(example)
-    print(outputt)
-    #y_pred = rf.predict(x_test)
-    return outputt
+    # example =np.array([l]) 
+    # outputt= rf.predict(example)[0]
+    # print(outputt)
+    # #y_pred = rf.predict(x_test)
+    # return outputt
 
 
 

@@ -36,7 +36,7 @@ def get_page_stats(url):
             "link_count": link_count
         }
     except Exception as e:
-        print("Error:", e)
+        # print("Error:", e)
         return None
 
 # Example usage
@@ -45,8 +45,8 @@ def status(url):
       # Replace with the URL of the webpage you want to analyze
      stats = get_page_stats(url)
      if(stats == None):
-           return 0
-     if(stats['word_count'] < 100 and stats['image_count'] < 5 and  stats['link_count'] >20 ):
+           return -1
+     if(stats['word_count'] < 100 and stats['image_count'] < 10 and  stats['link_count'] >20 ):
         return -1
      else:
         return 1
@@ -55,4 +55,4 @@ def status(url):
     # print("Word count:", stats["word_count"])
     # print("Image count:", stats["image_count"])
     # print("Link count:", stats["link_count"])
-print(status("https://epicor.com" ))
+# print(status("https://epicor.com" ))

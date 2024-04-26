@@ -3,15 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="shortcut icon" href = "/static/img/favicon.png" type="image/x-icon" />
+    <link
+      rel="shortcut icon"
+      href="/static/img/favicon.png"
+      type="image/x-icon"
+    />
     <title>PhishGuardian</title>
-    <link rel="stylesheet" href={{csshai}}>
+    <link rel="stylesheet" href="{{csshai}}" />
     <script
       src="https://kit.fontawesome.com/08a09afef1.js"
       crossorigin="anonymous"
     ></script>
   </head>
   <body>
+    <div id="loader" class="loader" style="display: none"></div>
+
     <div class="top-banner">
       <div class="container">
         <div class="small-bold-text banner-text">
@@ -24,7 +30,7 @@
     <nav>
       <div class="main-nav flex container">
         <a href="#" class="company-logo">
-          <img src ={{user_image}} alt="Comapny Logo" />
+          <img src="{{user_image}}" alt="Comapny Logo" />
         </a>
         <div class="bg-nav-link">
           <a href="#" class="nav-toggle hover-link" id="nav-toggle">
@@ -44,13 +50,21 @@
           </div>
           <div class="flex input-text">
             <p>Enter the URL :</p>
-            <form action="\" method="POST" class="centered-form" for="urlname">
-              <input type="text" class="textbox" id="urlname" name="urlname"/>
+            <!-- <form action="\" method="POST" class="centered-form" for="urlname"> -->
+            <form
+              id="form"
+              action="/"
+              method="POST"
+              class="centered-form"
+              for="urlname"
+              onsubmit="submitForm()"
+            >
+              <input type="text" class="textbox" id="urlname" name="urlname" />
               <br />
+
               <input type="submit" class="primary-btn predict_btn" />
-                
-              
             </form>
+
             <p id="result_para">{{result}}</p>
           </div>
         </div>
@@ -65,5 +79,38 @@
         navLinks.classList.toggle("active");
       });
     </script>
+<<<<<<< Updated upstream
+=======
+    <script>
+      // JavaScript to clear content after a certain time period
+      window.onload = function () {
+        // Select the paragraph element
+        var paragraph = document.getElementById("result_para");
+
+        // Set a timeout to clear the content after 5 seconds (5000 milliseconds)
+        setTimeout(function () {
+          paragraph.textContent = ""; // Clear the content
+        }, 5000); // 5000 milliseconds = 5 seconds
+      };
+    </script>
+    <script>
+      function showLoader() {
+        loader.style.display = "block";
+      }
+
+      // Function to hide loader
+      function hideLoader() {
+        loader.style.display = "none";
+      }
+
+      // Submit form function
+      function submitForm() {
+        showLoader(); // Show loader when form is submitted
+        setTimeout(() => {
+          document.getElementById("form").submit(); // Submit form after a short delay (optional)
+        }, 500); // Adjust the delay time as needed
+      }
+    </script>
+>>>>>>> Stashed changes
   </body>
 </html>
